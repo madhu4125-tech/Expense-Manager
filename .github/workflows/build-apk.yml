@@ -28,8 +28,11 @@ jobs:
 
       - name: Add Android platform
         run: npx cap add android
-      - name: Generate app icon and splash screen run: npx capacitor-assets generate --android
-      - name: Sync web assets
+
+      - name: Generate app icon and splash screen
+        run: npx capacitor-assets generate --android
+
+      - name: Sync web assets and plugins
         run: npx cap sync android
 
       - name: Build debug APK
