@@ -19,6 +19,9 @@
                     <button id="themeBtn" aria-label="Toggle dark mode" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center active:scale-95 transition">
                         <i id="themeIcon" class="fas fa-moon"></i>
                     </button>
+                    <button id="catBtn" aria-label="Manage categories" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center active:scale-95 transition">
+                        <i class="fas fa-tags"></i>
+                    </button>
                     <button id="backupBtn" aria-label="Backup and restore" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center active:scale-95 transition">
                         <i class="fas fa-cloud-arrow-up"></i>
                     </button>
@@ -52,7 +55,11 @@
             <!-- Category summary -->
             <details id="summaryCard" open class="hidden mb-6 bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl p-4">
                 <summary class="font-bold text-gray-700 dark:text-gray-200 cursor-pointer select-none">Spending by category</summary>
-                <div id="summaryList" class="space-y-3 mt-4"></div>
+                <div class="flex bg-gray-100 dark:bg-slate-700 p-1 rounded-lg mt-4">
+                    <button id="viewPie" type="button" class="flex-1 py-2 rounded-md font-bold text-sm transition">Pie</button>
+                    <button id="viewBars" type="button" class="flex-1 py-2 rounded-md font-bold text-sm transition">Bars</button>
+                </div>
+                <div id="summaryList" class="mt-4"></div>
             </details>
 
             <div class="flex justify-between items-center mb-4">
@@ -118,6 +125,51 @@
             </div>
         </div>
 
+        <!-- Categories Modal -->
+        <div id="catModal" class="fixed inset-0 bg-black/50 z-50 hidden flex flex-col justify-end transition-opacity opacity-0">
+            <div class="bg-white dark:bg-slate-800 w-full max-w-md mx-auto rounded-t-2xl p-5 transform translate-y-full transition-transform duration-300 max-h-[95vh] overflow-y-auto" id="catModalContent">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 id="catTitle" class="text-xl font-bold text-gray-800 dark:text-gray-100">Categories</h2>
+                    <button id="closeCat" type="button" class="text-gray-400 hover:text-gray-600 text-3xl leading-none">&times;</button>
+                </div>
+
+                <!-- List view -->
+                <div id="catListView">
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-5">Tap a category to rename it or change its emoji and color. Deleting one moves its transactions to Others.</p>
+                    <div id="catList" class="space-y-3 mb-5"></div>
+                    <button id="addCatBtn" type="button" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl active:scale-[0.98] transition shadow-lg shadow-blue-200 dark:shadow-none">
+                        <i class="fas fa-plus mr-1"></i> Add category
+                    </button>
+                </div>
+
+                <!-- Add / edit view -->
+                <div id="catFormView" class="hidden mt-3">
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide">Name</label>
+                        <input type="text" id="catName" maxlength="20" placeholder="e.g. Groceries" class="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-3 outline-none focus:border-blue-500 text-gray-700 dark:text-gray-100 placeholder-gray-400 dark:placeholder-slate-500">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide">Emoji</label>
+                        <input type="text" id="catEmoji" maxlength="8" placeholder="Type one or pick below" class="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-3 outline-none focus:border-blue-500 text-gray-700 dark:text-gray-100 placeholder-gray-400 dark:placeholder-slate-500">
+                        <div id="catEmojiChips" class="mt-2" style="display:grid;grid-template-columns:repeat(8,1fr);gap:4px"></div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide">Color</label>
+                        <div id="catColors" class="mt-2" style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px"></div>
+                    </div>
+
+                    <button id="saveCat" type="button" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl active:scale-[0.98] transition shadow-lg shadow-blue-200 dark:shadow-none">
+                        Save category
+                    </button>
+                    <button id="cancelCat" type="button" class="w-full mt-3 py-3 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 font-bold rounded-xl active:scale-[0.98] transition">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Backup Modal -->
         <div id="backupModal" class="fixed inset-0 bg-black/50 z-50 hidden flex flex-col justify-end transition-opacity opacity-0">
             <div class="bg-white dark:bg-slate-800 w-full max-w-md mx-auto rounded-t-2xl p-5 transform translate-y-full transition-transform duration-300" id="backupModalContent">
@@ -129,7 +181,7 @@
 
                 <button id="exportJson" class="w-full flex items-center gap-3 p-4 mb-3 rounded-xl bg-blue-50 dark:bg-slate-700 text-left active:scale-[0.98] transition">
                     <i class="fas fa-file-export text-blue-600 dark:text-blue-400 text-xl w-6 text-center"></i>
-                    <span><span class="block font-bold text-gray-800 dark:text-gray-100">Export backup (JSON)</span><span class="block text-xs text-gray-500 dark:text-gray-400">Use this to restore the app later</span></span>
+                    <span><span class="block font-bold text-gray-800 dark:text-gray-100">Export backup (JSON)</span><span class="block text-xs text-gray-500 dark:text-gray-400">Includes your categories. Use this to restore the app later</span></span>
                 </button>
                 <button id="exportCsv" class="w-full flex items-center gap-3 p-4 mb-3 rounded-xl bg-green-50 dark:bg-slate-700 text-left active:scale-[0.98] transition">
                     <i class="fas fa-file-csv text-green-600 dark:text-green-400 text-xl w-6 text-center"></i>
@@ -137,7 +189,7 @@
                 </button>
                 <button id="importBtn" class="w-full flex items-center gap-3 p-4 rounded-xl bg-amber-50 dark:bg-slate-700 text-left active:scale-[0.98] transition">
                     <i class="fas fa-file-import text-amber-600 dark:text-amber-400 text-xl w-6 text-center"></i>
-                    <span><span class="block font-bold text-gray-800 dark:text-gray-100">Import backup (JSON)</span><span class="block text-xs text-gray-500 dark:text-gray-400">Adds transactions you don't already have</span></span>
+                    <span><span class="block font-bold text-gray-800 dark:text-gray-100">Import backup (JSON)</span><span class="block text-xs text-gray-500 dark:text-gray-400">Adds transactions and categories you don't already have</span></span>
                 </button>
                 <input type="file" id="importFile" class="hidden">
             </div>
@@ -150,7 +202,7 @@
                     <i class="fas fa-exclamation-triangle"></i>
                 </div>
                 <h3 class="text-xl font-bold text-center text-gray-800 dark:text-gray-100 mb-2">Start Fresh?</h3>
-                <p class="text-center text-gray-500 dark:text-gray-400 text-sm mb-6">This will permanently delete all your transactions. Export a backup first if you might need them. You cannot undo this action.</p>
+                <p class="text-center text-gray-500 dark:text-gray-400 text-sm mb-6">This will permanently delete all your transactions. Your categories stay. Export a backup first if you might need them. You cannot undo this action.</p>
                 <div class="flex gap-3">
                     <button id="cancelReset" class="flex-1 py-3 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 font-bold rounded-xl transition">Cancel</button>
                     <button id="confirmReset" class="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl shadow-lg shadow-red-200 dark:shadow-none transition">Delete All</button>
