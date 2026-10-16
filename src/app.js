@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
+import { initSmsImport } from './smsImport.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -838,6 +839,17 @@ function init() {
     saveData();
     closeModal('resetModal', 'scale-95');
     updateDashboard();
+  });
+
+  // import from SMS (new): only messages received from the first-run day onward
+  initSmsImport({
+    $, toast, openModal, closeModal, backdropClose, escapeHtml, fmt, catLabel,
+    getCategories: () => categories,
+    addTransactions: (list) => {
+      transactions = list.concat(transactions);
+      saveData();
+      updateDashboard();
+    },
   });
 
   updateDashboard();
