@@ -43,6 +43,14 @@ jobs:
       - name: Sync web assets and plugins
         run: npx cap sync android
 
+      - name: Patch SMS plugin to Java 17 (plugin asks for Java 21)
+        run: |
+          F=node_modules/capacitor-sms-inbox/android/build.gradle
+          grep -n "21" "$F" || true
+          sed -i 's/VERSION_21/VERSION_17/g; s/JavaLanguageVersion.of(21)/JavaLanguageVersion.of(17)/g' "$F"
+          echo "--- after patch ---"
+          grep -n "VERSION_\|JavaLanguageVersion" "$F" || true
+
       - name: Build debug APK
         working-directory: android
         run: |
