@@ -29,6 +29,14 @@ jobs:
       - name: Add Android platform
         run: npx cap add android
 
+      - name: Allow reading SMS (for Import from SMS)
+        run: |
+          MANIFEST=android/app/src/main/AndroidManifest.xml
+          if ! grep -q "android.permission.READ_SMS" "$MANIFEST"; then
+            sed -i '/android.permission.INTERNET/a\    <uses-permission android:name="android.permission.READ_SMS" />' "$MANIFEST"
+          fi
+          grep -n "uses-permission" "$MANIFEST"
+
       - name: Generate app icon and splash screen
         run: npx capacitor-assets generate --android
 
