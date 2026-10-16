@@ -3,293 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Daily Expense Manager</title>
+    <title>My Expenses</title>
     <link href="tailwind.css" rel="stylesheet">
     <link href="fa/css/all.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100 font-sans antialiased text-gray-800 selection:bg-blue-200">
+<body class="bg-gray-100 dark:bg-slate-950 font-sans antialiased text-gray-800 dark:text-gray-100 selection:bg-blue-200">
 
-    <div class="max-w-md mx-auto bg-white min-h-screen shadow-lg relative">
+    <div class="max-w-md mx-auto bg-white dark:bg-slate-900 min-h-screen shadow-lg relative">
 
-        <!-- Header & Time Filter -->
-        <header class="bg-blue-600 text-white p-5 rounded-b-2xl shadow-md">
+        <!-- Header -->
+        <header class="bg-blue-600 dark:bg-blue-800 text-white px-5 pb-5 rounded-b-2xl shadow-md">
             <div class="flex justify-between items-center mb-4">
-                <h1 class="text-xl font-bold tracking-wide">Expense Manager</h1>
-                <select id="timeFilter" class="bg-blue-700 text-white text-sm border-none rounded-lg p-2 focus:ring-2 focus:ring-white outline-none cursor-pointer" onchange="updateDashboard()">
-                    <option value="week">This Week</option>
-                    <option value="month" selected>This Month</option>
-                    <option value="all">All Time</option>
-                </select>
+                <h1 class="text-xl font-bold tracking-wide">My Expenses</h1>
+                <div class="flex items-center gap-2">
+                    <button id="themeBtn" aria-label="Toggle dark mode" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center active:scale-95 transition">
+                        <i id="themeIcon" class="fas fa-moon"></i>
+                    </button>
+                    <button id="backupBtn" aria-label="Backup and restore" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center active:scale-95 transition">
+                        <i class="fas fa-cloud-arrow-up"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Period filter -->
+            <div class="flex bg-white/20 p-1 rounded-lg mb-4 text-sm font-semibold">
+                <button data-filter="week" class="filter-btn flex-1 py-1.5 rounded-md transition">Week</button>
+                <button data-filter="month" class="filter-btn flex-1 py-1.5 rounded-md transition">Month</button>
+                <button data-filter="all" class="filter-btn flex-1 py-1.5 rounded-md transition">All Time</button>
             </div>
 
             <div class="bg-white/20 p-4 rounded-xl mb-2 backdrop-blur-sm">
                 <p class="text-sm text-blue-100 uppercase tracking-wider font-semibold">Total Balance</p>
-                <h2 id="totalBalance" class="text-3xl font-bold mt-1">₹0</h2>
+                <h2 id="totalBalance" class="text-3xl font-bold mt-1">₹0.00</h2>
             </div>
             <div class="flex gap-3 mt-3">
                 <div class="flex-1 bg-white/20 p-3 rounded-xl backdrop-blur-sm">
                     <p class="text-xs text-blue-100 flex items-center gap-1"><i class="fas fa-arrow-down text-green-300"></i> Income</p>
-                    <p id="totalIncome" class="text-lg font-bold mt-1 text-white">₹0</p>
+                    <p id="totalIncome" class="text-lg font-bold mt-1 text-white">₹0.00</p>
                 </div>
                 <div class="flex-1 bg-white/20 p-3 rounded-xl backdrop-blur-sm">
                     <p class="text-xs text-blue-100 flex items-center gap-1"><i class="fas fa-arrow-up text-red-300"></i> Expense</p>
-                    <p id="totalExpense" class="text-lg font-bold mt-1 text-white">₹0</p>
+                    <p id="totalExpense" class="text-lg font-bold mt-1 text-white">₹0.00</p>
                 </div>
             </div>
         </header>
 
-        <!-- Transaction List -->
-        <main class="p-5 pb-24">
+        <main class="p-5 pb-28">
+            <!-- Category summary -->
+            <details id="summaryCard" open class="hidden mb-6 bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl p-4">
+                <summary class="font-bold text-gray-700 dark:text-gray-200 cursor-pointer select-none">Spending by category</summary>
+                <div id="summaryList" class="space-y-3 mt-4"></div>
+            </details>
+
             <div class="flex justify-between items-center mb-4">
-                <h3 class="font-bold text-gray-700 text-lg">Transactions</h3>
-                <button onclick="openResetModal()" class="text-xs text-red-500 bg-red-50 px-3 py-1 rounded-full font-medium hover:bg-red-100 transition">Reset Data</button>
+                <h3 class="font-bold text-gray-700 dark:text-gray-200 text-lg">Transactions</h3>
+                <button id="resetBtn" class="text-xs text-red-500 bg-red-50 dark:bg-red-950 dark:text-red-400 px-3 py-1 rounded-full font-medium">Reset Data</button>
             </div>
 
             <div id="transactionList" class="space-y-3"></div>
 
-            <div id="emptyState" class="hidden text-center py-10 text-gray-400">
-                <i class="fas fa-receipt text-4xl mb-3 text-gray-300"></i>
+            <div id="emptyState" class="hidden text-center py-10 text-gray-400 dark:text-gray-500">
+                <i class="fas fa-receipt text-4xl mb-3 text-gray-300 dark:text-slate-600"></i>
                 <p>No transactions found for this period.</p>
             </div>
         </main>
 
         <!-- Floating Add Button -->
-        <button onclick="openAddModal()" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-blue-600 text-white w-14 h-14 rounded-full shadow-xl hover:bg-blue-700 flex items-center justify-center text-2xl transition active:scale-95">
+        <button id="addBtn" aria-label="Add transaction" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-blue-600 text-white w-14 h-14 rounded-full shadow-xl flex items-center justify-center text-2xl transition active:scale-95">
             <i class="fas fa-plus"></i>
         </button>
 
-        <!-- Add Transaction Modal -->
+        <!-- Add / Edit Modal -->
         <div id="addModal" class="fixed inset-0 bg-black/50 z-50 hidden flex flex-col justify-end transition-opacity opacity-0">
-            <div class="bg-white w-full max-w-md mx-auto rounded-t-2xl p-5 transform translate-y-full transition-transform duration-300" id="addModalContent">
+            <div class="bg-white dark:bg-slate-800 w-full max-w-md mx-auto rounded-t-2xl p-5 transform translate-y-full transition-transform duration-300 max-h-[95vh] overflow-y-auto" id="addModalContent">
                 <div class="flex justify-between items-center mb-5">
-                    <h2 class="text-xl font-bold text-gray-800">New Transaction</h2>
-                    <button onclick="closeAddModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+                    <h2 id="modalTitle" class="text-xl font-bold text-gray-800 dark:text-gray-100">New Transaction</h2>
+                    <button id="closeAdd" type="button" class="text-gray-400 hover:text-gray-600 text-3xl leading-none">&times;</button>
                 </div>
 
-                <div class="flex bg-gray-100 p-1 rounded-lg mb-5">
-                    <button id="btnExpense" onclick="setType('expense')" class="flex-1 py-2 rounded-md bg-white shadow-sm text-red-500 font-bold text-sm transition">Expense</button>
-                    <button id="btnIncome" onclick="setType('income')" class="flex-1 py-2 rounded-md text-gray-500 font-bold text-sm transition">Income</button>
+                <div class="flex bg-gray-100 dark:bg-slate-700 p-1 rounded-lg mb-5">
+                    <button id="btnExpense" type="button" class="flex-1 py-2 rounded-md font-bold text-sm transition">Expense</button>
+                    <button id="btnIncome" type="button" class="flex-1 py-2 rounded-md font-bold text-sm transition">Income</button>
                 </div>
 
-                <form id="transactionForm" onsubmit="addTransaction(event)">
+                <form id="transactionForm">
                     <div class="mb-4">
-                        <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Amount (₹)</label>
-                        <input type="number" inputmode="decimal" id="amount" required step="0.01" min="0.01" placeholder="0.00" class="w-full text-3xl font-bold border-b-2 border-gray-200 focus:border-blue-500 outline-none py-2 text-gray-800 bg-transparent placeholder-gray-300">
+                        <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide">Amount (₹)</label>
+                        <input type="number" inputmode="decimal" id="amount" required step="0.01" min="0.01" placeholder="0.00" class="w-full text-3xl font-bold border-b-2 border-gray-200 dark:border-slate-600 focus:border-blue-500 outline-none py-2 text-gray-800 dark:text-gray-100 bg-transparent placeholder-gray-300 dark:placeholder-slate-600">
                     </div>
 
-                    <div class="mb-4">
-                        <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Category</label>
-                        <select id="category" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 appearance-none text-gray-700">
-                            <option value="Petrol">⛽ Petrol</option>
-                            <option value="Investment">📈 Investment</option>
-                            <option value="Home">🏠 Home</option>
-                            <option value="Hak">👤 Hak</option>
-                            <option value="Siddu">👤 Siddu</option>
-                            <option value="Madhu">👤 Madhu</option>
-                            <option value="Others">📦 Others</option>
-                        </select>
+                    <div class="flex gap-3 mb-4">
+                        <div class="flex-1">
+                            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide">Category</label>
+                            <select id="category" class="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-3 outline-none focus:border-blue-500 text-gray-700 dark:text-gray-100"></select>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide">Date</label>
+                            <input type="date" id="date" required class="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-3 outline-none focus:border-blue-500 text-gray-700 dark:text-gray-100">
+                        </div>
                     </div>
 
                     <div class="mb-6">
-                        <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Note (Optional)</label>
-                        <input type="text" id="note" placeholder="What was this for?" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 text-gray-700">
+                        <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide">Note (Optional)</label>
+                        <input type="text" id="note" placeholder="What was this for?" class="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-3 outline-none focus:border-blue-500 text-gray-700 dark:text-gray-100 placeholder-gray-400 dark:placeholder-slate-500">
                     </div>
 
-                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-700 active:scale-[0.98] transition shadow-lg shadow-blue-200">
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl active:scale-[0.98] transition shadow-lg shadow-blue-200 dark:shadow-none">
                         Save Transaction
+                    </button>
+                    <button id="deleteBtn" type="button" class="hidden w-full mt-3 py-3 text-red-500 font-bold rounded-xl bg-red-50 dark:bg-red-950 active:scale-[0.98] transition">
+                        <i class="fas fa-trash mr-1"></i> Delete
                     </button>
                 </form>
             </div>
         </div>
 
+        <!-- Backup Modal -->
+        <div id="backupModal" class="fixed inset-0 bg-black/50 z-50 hidden flex flex-col justify-end transition-opacity opacity-0">
+            <div class="bg-white dark:bg-slate-800 w-full max-w-md mx-auto rounded-t-2xl p-5 transform translate-y-full transition-transform duration-300" id="backupModalContent">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Backup &amp; Restore</h2>
+                    <button id="closeBackup" type="button" class="text-gray-400 hover:text-gray-600 text-3xl leading-none">&times;</button>
+                </div>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-5">Your data lives only on this phone. Export a backup and save it to Drive or WhatsApp so you can restore it later.</p>
+
+                <button id="exportJson" class="w-full flex items-center gap-3 p-4 mb-3 rounded-xl bg-blue-50 dark:bg-slate-700 text-left active:scale-[0.98] transition">
+                    <i class="fas fa-file-export text-blue-600 dark:text-blue-400 text-xl w-6 text-center"></i>
+                    <span><span class="block font-bold text-gray-800 dark:text-gray-100">Export backup (JSON)</span><span class="block text-xs text-gray-500 dark:text-gray-400">Use this to restore the app later</span></span>
+                </button>
+                <button id="exportCsv" class="w-full flex items-center gap-3 p-4 mb-3 rounded-xl bg-green-50 dark:bg-slate-700 text-left active:scale-[0.98] transition">
+                    <i class="fas fa-file-csv text-green-600 dark:text-green-400 text-xl w-6 text-center"></i>
+                    <span><span class="block font-bold text-gray-800 dark:text-gray-100">Export for Excel (CSV)</span><span class="block text-xs text-gray-500 dark:text-gray-400">Open in Excel or Google Sheets</span></span>
+                </button>
+                <button id="importBtn" class="w-full flex items-center gap-3 p-4 rounded-xl bg-amber-50 dark:bg-slate-700 text-left active:scale-[0.98] transition">
+                    <i class="fas fa-file-import text-amber-600 dark:text-amber-400 text-xl w-6 text-center"></i>
+                    <span><span class="block font-bold text-gray-800 dark:text-gray-100">Import backup (JSON)</span><span class="block text-xs text-gray-500 dark:text-gray-400">Adds transactions you don't already have</span></span>
+                </button>
+                <input type="file" id="importFile" class="hidden">
+            </div>
+        </div>
+
         <!-- Reset Confirmation Modal -->
         <div id="resetModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity">
-            <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform scale-95 transition-transform" id="resetModalContent">
-                <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-500 mb-4 mx-auto text-xl">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl transform scale-95 transition-transform" id="resetModalContent">
+                <div class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-950 flex items-center justify-center text-red-500 mb-4 mx-auto text-xl">
                     <i class="fas fa-exclamation-triangle"></i>
                 </div>
-                <h3 class="text-xl font-bold text-center text-gray-800 mb-2">Start Fresh?</h3>
-                <p class="text-center text-gray-500 text-sm mb-6">This will permanently delete all your transactions. You cannot undo this action.</p>
+                <h3 class="text-xl font-bold text-center text-gray-800 dark:text-gray-100 mb-2">Start Fresh?</h3>
+                <p class="text-center text-gray-500 dark:text-gray-400 text-sm mb-6">This will permanently delete all your transactions. Export a backup first if you might need them. You cannot undo this action.</p>
                 <div class="flex gap-3">
-                    <button onclick="closeResetModal()" class="flex-1 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition">Cancel</button>
-                    <button onclick="clearData()" class="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 shadow-lg shadow-red-200 transition">Delete All</button>
+                    <button id="cancelReset" class="flex-1 py-3 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 font-bold rounded-xl transition">Cancel</button>
+                    <button id="confirmReset" class="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl shadow-lg shadow-red-200 dark:shadow-none transition">Delete All</button>
                 </div>
             </div>
         </div>
 
+        <!-- Toast -->
+        <div id="toast" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[60] bg-gray-800 text-white text-sm px-4 py-2 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-300 max-w-[90%] text-center"></div>
     </div>
 
-    <script>
-        let transactions = [];
-        try { transactions = JSON.parse(localStorage.getItem('transactions')) || []; } catch (e) { transactions = []; }
-        let currentType = 'expense';
-
-        document.addEventListener('DOMContentLoaded', () => { updateDashboard(); });
-
-        function escapeHtml(s) {
-            return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-        }
-
-        function setType(type) {
-            currentType = type;
-            const btnExp = document.getElementById('btnExpense');
-            const btnInc = document.getElementById('btnIncome');
-            if (type === 'expense') {
-                btnExp.className = 'flex-1 py-2 rounded-md bg-white shadow-sm text-red-500 font-bold text-sm transition';
-                btnInc.className = 'flex-1 py-2 rounded-md text-gray-500 font-bold text-sm transition bg-transparent shadow-none';
-            } else {
-                btnInc.className = 'flex-1 py-2 rounded-md bg-white shadow-sm text-green-500 font-bold text-sm transition';
-                btnExp.className = 'flex-1 py-2 rounded-md text-gray-500 font-bold text-sm transition bg-transparent shadow-none';
-            }
-        }
-
-        function openAddModal() {
-            const modal = document.getElementById('addModal');
-            const content = document.getElementById('addModalContent');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                content.classList.remove('translate-y-full');
-            }, 10);
-            document.getElementById('amount').focus();
-        }
-
-        function closeAddModal() {
-            const modal = document.getElementById('addModal');
-            const content = document.getElementById('addModalContent');
-            modal.classList.add('opacity-0');
-            content.classList.add('translate-y-full');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                document.getElementById('transactionForm').reset();
-                setType('expense');
-            }, 300);
-        }
-
-        function openResetModal() {
-            const modal = document.getElementById('resetModal');
-            const content = document.getElementById('resetModalContent');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                content.classList.remove('scale-95');
-            }, 10);
-        }
-
-        function closeResetModal() {
-            const modal = document.getElementById('resetModal');
-            const content = document.getElementById('resetModalContent');
-            modal.classList.add('opacity-0');
-            content.classList.add('scale-95');
-            setTimeout(() => modal.classList.add('hidden'), 300);
-        }
-
-        function addTransaction(e) {
-            e.preventDefault();
-            const amount = parseFloat(document.getElementById('amount').value);
-            const categoryObj = document.getElementById('category');
-            const categoryRaw = categoryObj.options[categoryObj.selectedIndex].text;
-            const note = document.getElementById('note').value.trim();
-
-            transactions.unshift({
-                id: Date.now(),
-                amount: amount,
-                type: currentType,
-                category: categoryRaw,
-                note: note,
-                date: new Date().toISOString()
-            });
-            saveData();
-            closeAddModal();
-            updateDashboard();
-        }
-
-        function deleteTransaction(id) {
-            transactions = transactions.filter(t => t.id !== id);
-            saveData();
-            updateDashboard();
-        }
-
-        function clearData() {
-            transactions = [];
-            saveData();
-            closeResetModal();
-            updateDashboard();
-        }
-
-        function saveData() {
-            localStorage.setItem('transactions', JSON.stringify(transactions));
-        }
-
-        function getFilteredTransactions() {
-            const filter = document.getElementById('timeFilter').value;
-            const now = new Date();
-            return transactions.filter(t => {
-                const tDate = new Date(t.date);
-                if (filter === 'all') return true;
-                if (filter === 'month') {
-                    return tDate.getMonth() === now.getMonth() && tDate.getFullYear() === now.getFullYear();
-                }
-                if (filter === 'week') {
-                    const diffDays = Math.ceil(Math.abs(now - tDate) / (1000 * 60 * 60 * 24));
-                    return diffDays <= 7;
-                }
-                return true;
-            });
-        }
-
-        function updateDashboard() {
-            const filtered = getFilteredTransactions();
-            let inc = 0, exp = 0;
-            filtered.forEach(t => {
-                if (t.type === 'income') inc += t.amount;
-                if (t.type === 'expense') exp += t.amount;
-            });
-            document.getElementById('totalIncome').innerText = `₹${inc.toFixed(2)}`;
-            document.getElementById('totalExpense').innerText = `₹${exp.toFixed(2)}`;
-            document.getElementById('totalBalance').innerText = `₹${(inc - exp).toFixed(2)}`;
-            renderList(filtered);
-        }
-
-        function renderList(list) {
-            const container = document.getElementById('transactionList');
-            const emptyState = document.getElementById('emptyState');
-            container.innerHTML = '';
-
-            if (list.length === 0) {
-                emptyState.classList.remove('hidden');
-                return;
-            }
-            emptyState.classList.add('hidden');
-
-            list.forEach(t => {
-                const isExp = t.type === 'expense';
-                const sign = isExp ? '-' : '+';
-                const color = isExp ? 'text-red-500' : 'text-green-500';
-                const dateStr = new Date(t.date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
-
-                const item = document.createElement('div');
-                item.className = 'bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between';
-                item.innerHTML = `
-                    <div class="flex items-center gap-4 overflow-hidden">
-                        <div class="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center text-xl shrink-0">
-                            ${escapeHtml(t.category.split(' ')[0])}
-                        </div>
-                        <div class="min-w-0">
-                            <p class="font-bold text-gray-800 truncate">${escapeHtml(t.category.substring(2))}</p>
-                            <p class="text-xs text-gray-400 truncate">${dateStr} ${t.note ? '• ' + escapeHtml(t.note) : ''}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3 shrink-0">
-                        <span class="font-bold ${color}">${sign}₹${t.amount.toFixed(2)}</span>
-                        <button onclick="deleteTransaction(${t.id})" class="text-red-300 hover:text-red-500 transition p-2">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                `;
-                container.appendChild(item);
-            });
-        }
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>

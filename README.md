@@ -1,24 +1,16 @@
-# Expense Manager (Android)
+# My Expenses (Android)
 
-Offline daily expense tracker. Web app wrapped as a native Android app using Capacitor.
-Data is stored on the device (localStorage).
+Offline expense tracker, built as a native Android app with Capacitor.
 
-## Get the APK (no local setup needed)
-1. Push this repo to GitHub (branch `main`).
-2. Go to the **Actions** tab -> **Build Android APK** -> open the latest run.
-3. Download the **expense-manager-apk** artifact (zip), extract it, and install `app-debug.apk` on your phone
-   (allow "Install unknown apps").
+Features: add/edit/delete transactions, pick any past date, spending-by-category summary,
+week/month/all-time filter, dark mode, backup (JSON) and Excel export (CSV), restore from backup.
 
-You can also run it manually: Actions -> Build Android APK -> **Run workflow**.
+## Get the APK
+Push to `main` -> GitHub **Actions** tab -> latest **Build Android APK** run -> download the
+**expense-manager-apk** artifact -> install `app-debug.apk`.
 
 ## Edit the app
-All UI and logic live in `src/index.html`. Commit changes and the APK rebuilds automatically.
-
-## Local build (optional)
-```
-npm install
-npm run build
-npx cap add android
-npx cap sync android
-npx cap open android   # opens Android Studio
-```
+- UI: `src/index.html`
+- Logic: `src/app.js`
+- Icon / splash images: `assets/`
+- App name: `capacitor.config.json` (`appName`)
